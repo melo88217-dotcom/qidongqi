@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "projectName": "本地项目启动器",
+  "projectPath": "D:/codex/本地项目启动器",
+  "locked": true,
+  "ports": {
+    "frontend": 3100,
+    "backend": 8100,
+    "media": 8200,
+    "admin": 9100,
+    "websocket": 8300
+  },
+  "paths": {
+    "mediaRoot": "D:/DevMedia/本地项目启动器",
+    "obsidianRoot": "D:/DevObsidian/本地项目启动器-test-vault"
+  },
+  "createdAt": "2026-06-24T07:11:53.469Z",
+  "updatedAt": "2026-06-25T02:45:00.000Z"
+}
