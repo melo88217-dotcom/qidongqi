@@ -44,6 +44,8 @@ export interface RegistryProject {
   paths: ProjectPaths;
   status: ProjectStatus;
   lastStartedAt: string | null;
+  managedPid?: number | null;
+  managedProcessCreatedAt?: string | null;
 }
 
 export interface PortRegistry {
@@ -110,4 +112,18 @@ export interface AppSnapshot {
 export interface ActionResult {
   ok: boolean;
   message: string;
+}
+
+export type ReleaseConflictReason =
+  | "released"
+  | "already-free"
+  | "confirmation-required"
+  | "owner-changed"
+  | "invalid-port"
+  | "still-in-use";
+
+export interface ReleaseConflictResult {
+  released: boolean;
+  reason: ReleaseConflictReason;
+  pid: number | null;
 }

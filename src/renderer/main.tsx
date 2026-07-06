@@ -248,6 +248,58 @@ function ProjectCard({
     onBusy(null);
   };
 
+  const releaseConflicts = async () => {
+    const conflicts = project.portChecks.filter(
+      (check) => check.conflict && check.owner?.pid
+    );
+    if (conflicts.length === 0) {
+      onNotice(`${project.name} 当前没有可释放的端口占用。`);
+      return;
+    }
+    const summary = conflicts
+      .map((check) => `${roleLabels[check.role]} ${check.port}，PID ${check.owner!.pid}`)
+      .join("\n");
+    if (!confirm(`准备释放 ${project.name} 的端口占用：\n\n${summary}\n\n继续后会重新核对进程身份。`)) {
+      return;
+    }
+
+    onBusy(project.path);
+    const messages: string[] = [];
+    try {
+      for (const conflict of conflicts) {
+        const pid = conflict.owner!.pid!;
+        let response = await window.launcher.releasePortConflict(
+          project.path,
+          conflict.port,
+          pid,
+          false
+        );
+        if (response.result.reason === "confirmation-required") {
+          const command = conflict.owner?.commandLine || "无法读取命令行";
+          const confirmed = confirm(
+            `无法自动确认 PID ${pid} 属于 ${project.name}。\n\n端口：${conflict.port}\n进程：${conflict.owner?.processName || "未知"}\n命令：${command}\n\n仅在你确认该进程可以结束时选择“确定”。`
+          );
+          if (!confirmed) {
+            messages.push(`${conflict.port}：已取消`);
+            continue;
+          }
+          response = await window.launcher.releasePortConflict(
+            project.path,
+            conflict.port,
+            pid,
+            true
+          );
+        }
+
+        updateProjects(response.projects, response.registry);
+        messages.push(formatReleaseResult(conflict.port, response.result.reason, response.result.pid));
+      }
+      onNotice(messages.join("；"));
+    } finally {
+      onBusy(null);
+    }
+  };
+
   const remove = async () => {
     if (!confirm(`只从全局登记表移除 ${project.name}，不会删除项目文件。确认继续？`)) return;
     onBusy(project.path);
@@ -335,11 +387,31 @@ function ProjectCard({
         <button onClick={() => void window.launcher.openEnv(project.path)}>打开配置</button>
         <button onClick={assign}>分配端口</button>
         <button onClick={repair}>修复端口</button>
+        {project.portChecks.some((check) => check.conflict) && (
+          <button className="danger" onClick={releaseConflicts}>释放占用</button>
+        )}
         <button onClick={template}>生成模板</button>
         <button className="danger" onClick={remove}>移除登记</button>
       </div>
     </article>
   );
+}
+
+function formatReleaseResult(port: number, reason: string, pid: number | null): string {
+  switch (reason) {
+    case "released":
+      return `${port}：已释放 PID ${pid}`;
+    case "already-free":
+      return `${port}：已经空闲`;
+    case "owner-changed":
+      return `${port}：占用进程已变化为 PID ${pid ?? "未知"}，未操作`;
+    case "invalid-port":
+      return `${port}：不是该项目登记端口，未操作`;
+    case "still-in-use":
+      return `${port}：结束后仍被 PID ${pid ?? "未知"} 占用`;
+    default:
+      return `${port}：未释放`;
+  }
 }
 
 function Port({ label, value }: { label: string; value?: number }) {

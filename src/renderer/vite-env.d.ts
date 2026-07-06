@@ -1,6 +1,12 @@
 /// <reference types="vite/client" />
 
-import type { AppSettings, AppSnapshot, PortCheck, ProjectSummary } from "../shared/types";
+import type {
+  AppSettings,
+  AppSnapshot,
+  PortCheck,
+  ProjectSummary,
+  ReleaseConflictResult
+} from "../shared/types";
 
 declare global {
   interface Window {
@@ -18,6 +24,16 @@ declare global {
       }>;
       stopProject: (projectPath: string) => Promise<{
         stopped: boolean;
+        registry: AppSnapshot["registry"];
+        projects: ProjectSummary[];
+      }>;
+      releasePortConflict: (
+        projectPath: string,
+        port: number,
+        expectedPid: number,
+        force: boolean
+      ) => Promise<{
+        result: ReleaseConflictResult;
         registry: AppSnapshot["registry"];
         projects: ProjectSummary[];
       }>;

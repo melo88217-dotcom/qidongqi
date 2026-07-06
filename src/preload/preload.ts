@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld("launcher", {
   checkPorts: (projectPath: string) => ipcRenderer.invoke("project:checkPorts", projectPath),
   startProject: (projectPath: string) => ipcRenderer.invoke("project:start", projectPath),
   stopProject: (projectPath: string) => ipcRenderer.invoke("project:stop", projectPath),
+  releasePortConflict: (projectPath: string, port: number, expectedPid: number, force: boolean) =>
+    ipcRenderer.invoke("project:releaseConflict", projectPath, port, expectedPid, force),
   stopAll: () => ipcRenderer.invoke("project:stopAll"),
   openFolder: (projectPath: string) => ipcRenderer.invoke("project:openFolder", projectPath),
   openEnv: (projectPath: string) => ipcRenderer.invoke("project:openEnv", projectPath),

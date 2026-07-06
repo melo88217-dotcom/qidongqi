@@ -6,6 +6,7 @@
   "main": "dist-electron/main/main.js",
   "type": "module",
   "scripts": {
+    "test": "npm run build:electron && node --test tests/*.test.mjs",
     "dev:safe": "node scripts/dev-safe.cjs",
     "dev": "vite --host 0.0.0.0 --strictPort",
     "dev:electron": "npm run build:electron && cross-env NODE_ENV=development electron .",

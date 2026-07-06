@@ -9,7 +9,13 @@ import {
   repairProjectPorts,
   scanProjects
 } from "./projects.js";
-import { runningPids, startProject, stopAll, stopProject } from "./processManager.js";
+import {
+  releasePortConflict,
+  runningPids,
+  startProject,
+  stopAll,
+  stopProject
+} from "./processManager.js";
 
 let mainWindow: BrowserWindow | null = null;
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -168,6 +174,16 @@ function registerIpc(): void {
     const { registry, projects } = await scanProjects(settings, runningPids());
     return { stopped, registry, projects };
   });
+
+  ipcMain.handle(
+    "project:releaseConflict",
+    async (_event, projectPath: string, port: number, expectedPid: number, force: boolean) => {
+      const settings = readSettings();
+      const result = releasePortConflict(projectPath, port, expectedPid, force, settings);
+      const { registry, projects } = await scanProjects(settings, runningPids());
+      return { result, registry, projects };
+    }
+  );
 
   ipcMain.handle("project:openFolder", async (_event, projectPath: string) => {
     await shell.openPath(projectPath);

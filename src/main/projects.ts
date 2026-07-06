@@ -169,7 +169,7 @@ async function summarizeProject(
         ? "missing-config"
         : hasPackageJson && !hasDevSafe
           ? "missing-script"
-          : registryProject?.status ?? "stopped";
+          : "stopped";
 
   return {
     id: name,
