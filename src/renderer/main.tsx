@@ -194,7 +194,13 @@ function ProjectCard({
   updateProjects: (projects: ProjectSummary[], registry: AppSnapshot["registry"]) => void;
   refresh: () => Promise<void>;
 }) {
-  const frontendUrl = project.ports.frontend ? `http://localhost:${project.ports.frontend}` : null;
+  const [starting, setStarting] = useState(false);
+  const [startMessage, setStartMessage] = useState<string | null>(null);
+  const frontendUrl = project.ports.frontend
+    ? project.name === "Obsidian-Wiki"
+      ? `http://localhost:${project.ports.frontend}/?v=20260713-2`
+      : `http://localhost:${project.ports.frontend}`
+    : null;
   const adminUrl = project.ports.admin ? `http://localhost:${project.ports.admin}` : null;
 
   const assign = async () => {
@@ -233,11 +239,26 @@ function ProjectCard({
       onNotice(`${project.name} 存在端口冲突，请先处理冲突。`);
       return;
     }
+    const startingMessage = `${project.name} 正在启动，请稍候…`;
+    setStarting(true);
+    setStartMessage(startingMessage);
+    onNotice(startingMessage);
     onBusy(project.path);
-    const result = await window.launcher.startProject(project.path);
-    updateProjects(result.projects, result.registry);
-    onNotice(`${project.name} 已启动，PID：${result.pid || "未知"}。`);
-    onBusy(null);
+    try {
+      const result = await window.launcher.startProject(project.path);
+      updateProjects(result.projects, result.registry);
+      const successMessage = `${project.name} 已启动，PID：${result.pid || "未知"}。`;
+      setStartMessage(successMessage);
+      onNotice(successMessage);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : `${project.name} 启动失败。`;
+      await refresh();
+      setStartMessage(errorMessage);
+      onNotice(errorMessage);
+    } finally {
+      setStarting(false);
+      onBusy(null);
+    }
   };
 
   const stop = async () => {
@@ -323,7 +344,7 @@ function ProjectCard({
           <h3>{project.name}</h3>
           <p>{project.path}</p>
         </div>
-        <span className="status">{statusLabels[project.status]}</span>
+        <span className="status">{starting ? "启动中…" : statusLabels[project.status]}</span>
       </div>
 
       <div className="port-grid">
@@ -374,8 +395,14 @@ function ProjectCard({
         </div>
       </dl>
 
+      {startMessage && (
+        <p className={starting ? "project-notice starting" : "project-notice"} role="status">
+          {startMessage}
+        </p>
+      )}
+
       <div className="actions">
-        <button onClick={start}>启动</button>
+        <button onClick={start} disabled={starting}>{starting ? "启动中…" : "启动"}</button>
         <button onClick={stop}>停止</button>
         <button onClick={() => frontendUrl && void window.launcher.openUrl(frontendUrl)} disabled={!frontendUrl}>
           打开前端

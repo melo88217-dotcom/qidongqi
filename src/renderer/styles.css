@@ -310,6 +310,21 @@ nav button:hover {
   word-break: break-all;
 }
 
+.project-notice {
+  margin: 0;
+  border-radius: 7px;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 9px 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.project-notice.starting {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .danger {
   color: #b91c1c;
 }

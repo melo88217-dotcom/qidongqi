@@ -154,14 +154,23 @@ async function summarizeProject(
   const paths = lock?.paths ?? registryProject?.paths ?? projectPaths(name, settings);
   const projectWasMarkedRunning = registryProject?.status === "running";
   const portChecks = await checkPorts(ports, projectPath, projectWasMarkedRunning);
-  const hasConflict = portChecks.some((check) => check.conflict);
+  const isObsidianWiki = normalize(projectPath) === "d:/codex/obsidian-wiki";
+  const obsidianWikiPortsRunning = isObsidianWiki && [3107, 8107, 8207, 8307].every((port) =>
+    portChecks.some((check) => check.port === port && check.inUse)
+  );
+  const hasConflict = !obsidianWikiPortsRunning && portChecks.some((check) => check.conflict);
   const ownedRunningPid = portChecks.find((check) => check.ownedByProject && check.owner?.pid)?.owner?.pid ?? null;
-  const pid = runningPids.get(normalize(projectPath)) ?? ownedRunningPid ?? null;
+  const recoveredObsidianWikiPid = obsidianWikiPortsRunning
+    ? portChecks.find((check) => check.port === 3107)?.owner?.pid ?? null
+    : null;
+  const pid = runningPids.get(normalize(projectPath)) ?? ownedRunningPid ?? recoveredObsidianWikiPid;
   const hasDevSafe = Boolean(packageJson?.scripts?.["dev:safe"]);
   const hasPackageJson = Boolean(packageJson);
   const status = pid
     ? "running"
-    : hasConflict
+    : obsidianWikiPortsRunning
+      ? "running"
+      : hasConflict
       ? "port-conflict"
       : ownedRunningPid
         ? "running"

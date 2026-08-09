@@ -14,7 +14,8 @@ import {
   runningPids,
   startProject,
   stopAll,
-  stopProject
+  stopProject,
+  waitForProjectReady
 } from "./processManager.js";
 
 let mainWindow: BrowserWindow | null = null;
@@ -63,7 +64,6 @@ if (singleInstanceLock) {
 }
 
 app.on("window-all-closed", () => {
-  stopAll(readSettings());
   if (process.platform !== "darwin") {
     app.quit();
   }
@@ -151,12 +151,56 @@ function registerIpc(): void {
 
   ipcMain.handle("project:start", async (_event, projectPath: string) => {
     const settings = readSettings();
+    const comparableProjectPath = normalizePath(projectPath);
+    const existingManagedPid = [...runningPids().entries()].find(
+      ([runningPath]) => normalizePath(runningPath) === comparableProjectPath
+    )?.[1];
+    if (!existingManagedPid) {
+      const occupiedPorts = (await checkProjectPorts(projectPath, settings))
+        .filter((check) => check.inUse)
+        .map((check) => check.port);
+      if (occupiedPorts.length) {
+        throw new Error(`启动前检测到端口已被占用：${occupiedPorts.join(", ")}。`);
+      }
+    }
     const pid = startProject(projectPath, settings);
-    const { registry, projects } = await scanProjects(settings, runningPids());
-    const project = projects.find((item) => item.path === projectPath.replace(/\\/g, "/"));
+    const initialSnapshot = await scanProjects(settings, runningPids());
+    const project = initialSnapshot.projects.find(
+      (item) => normalizePath(item.path) === comparableProjectPath
+    );
     const isSelfProject = normalizePath(projectPath) === normalizePath(app.getAppPath());
+    if (project?.ports.frontend && !isSelfProject) {
+      const readinessPorts = project.name === "Obsidian-Wiki"
+        ? [
+            project.ports.frontend,
+            project.ports.backend,
+            project.ports.media,
+            project.ports.websocket
+          ].filter((port): port is number => Boolean(port))
+        : [project.ports.frontend];
+      const readiness = await waitForProjectReady(projectPath, readinessPorts);
+      if (!readiness.ready) {
+        if (readiness.reason === "timeout") {
+          stopProject(projectPath, settings);
+        }
+        throw new Error(readiness.details ?? `${project.name} 启动失败。`);
+      }
+    }
+    const { registry, projects } = await scanProjects(settings, runningPids());
+    const startedProject = projects.find(
+      (item) => normalizePath(item.path) === comparableProjectPath
+    );
+    if (startedProject?.pid !== pid) {
+      stopProject(projectPath, settings);
+      throw new Error(`${startedProject?.name ?? "项目"} 的启动进程已提前退出。`);
+    }
     if (settings.autoOpenBrowser && project?.ports.frontend && !isSelfProject) {
-      void shell.openExternal(`http://localhost:${project.ports.frontend}`);
+      try {
+        await shell.openExternal(frontendUrl(project));
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`项目已启动，但无法打开系统浏览器：${reason}`);
+      }
     }
     return { pid, registry, projects };
   });
@@ -220,4 +264,9 @@ function registerIpc(): void {
 
 function normalizePath(value: string): string {
   return path.normalize(value).replace(/\\/g, "/").toLowerCase();
+}
+
+function frontendUrl(project: { name: string; ports: { frontend?: number } }): string {
+  const baseUrl = `http://localhost:${project.ports.frontend}`;
+  return project.name === "Obsidian-Wiki" ? `${baseUrl}/?v=20260713-2` : baseUrl;
 }
