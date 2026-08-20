@@ -1,13 +1,13 @@
 # Local Project Launcher
 
-Local Project Launcher is a Windows-first Electron desktop app for managing local development projects under `D:/codex`.
+Local Project Launcher is a Windows-first Electron desktop app for managing local development projects under `C:/codex/codex`.
 
 It scans one-level project folders, assigns stable development ports, writes project port files, checks conflicts, starts projects with `npm run dev:safe`, and only stops projects launched by this app.
 
 ## Default Paths
 
-- Project root: `D:/codex`
-- Global port registry: `D:/codex/PORT_REGISTRY.json`
+- Project root: `C:/codex/codex`
+- Global port registry: `C:/codex/codex/PORT_REGISTRY.json`
 - Media root: `D:/DevMedia`
 - Obsidian test vault root: `D:/DevObsidian`
 
@@ -59,7 +59,7 @@ The packaged installer is written to `release/`.
 
 ## Add the First Project
 
-1. Put a project folder under `D:/codex`.
+1. Put a project folder under `C:/codex/codex`.
 2. Open Local Project Launcher.
 3. Click `扫描项目`.
 4. On the project card, click `分配端口`.
@@ -70,7 +70,7 @@ The launcher writes:
 - `.project-ports.lock`
 - `PROJECT_PORTS.md`
 - `.env.example` if missing
-- `D:/codex/PORT_REGISTRY.json`
+- `C:/codex/codex/PORT_REGISTRY.json`
 
 Existing `.env.development` files are not overwritten wholesale. The launcher writes a managed block between:
 

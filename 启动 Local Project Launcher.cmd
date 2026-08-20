@@ -51,7 +51,7 @@ if not exist "dist\index.html" (
   )
 )
 
-if not exist "dist-electron\main.js" (
+if not exist "dist-electron\main\main.js" (
   echo.
   echo [Local Project Launcher] Building desktop entry...
   call npm run build:electron

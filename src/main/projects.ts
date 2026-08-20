@@ -154,7 +154,9 @@ async function summarizeProject(
   const paths = lock?.paths ?? registryProject?.paths ?? projectPaths(name, settings);
   const projectWasMarkedRunning = registryProject?.status === "running";
   const portChecks = await checkPorts(ports, projectPath, projectWasMarkedRunning);
-  const isObsidianWiki = normalize(projectPath) === "d:/codex/obsidian-wiki";
+  const isObsidianWiki =
+    normalize(projectPath).toLowerCase() ===
+    normalize(path.join(settings.projectRoot, "Obsidian-Wiki")).toLowerCase();
   const obsidianWikiPortsRunning = isObsidianWiki && [3107, 8107, 8207, 8307].every((port) =>
     portChecks.some((check) => check.port === port && check.inUse)
   );

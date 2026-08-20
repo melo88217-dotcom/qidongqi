@@ -1,8 +1,8 @@
 import type { AppSettings } from "./types.js";
 
 export const defaultSettings: AppSettings = {
-  projectRoot: "D:/codex",
-  registryPath: "D:/codex/PORT_REGISTRY.json",
+  projectRoot: "C:/codex/codex",
+  registryPath: "C:/codex/codex/PORT_REGISTRY.json",
   mediaRoot: "D:/DevMedia",
   obsidianRoot: "D:/DevObsidian",
   autoOpenBrowser: true,

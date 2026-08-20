@@ -12,7 +12,7 @@ Final handoff should come from Controller with outcome, verification, and remain
 
 ## Local Project Launcher rules
 
-- Default project root is `D:/codex`.
+- Default project root is `C:/codex/codex`.
 - Do not scan the whole C drive.
 - Do not use default development ports `3000`, `5173`, `8000`, `8080`, `5000`, `3306`, `5432`, or `6379`.
 - Do not automatically kill unknown processes.

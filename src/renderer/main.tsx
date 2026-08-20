@@ -166,7 +166,7 @@ function App() {
           />
         )}
 
-        {view === "help" && <HelpPanel />}
+        {view === "help" && <HelpPanel projectRoot={snapshot.settings.projectRoot} />}
       </section>
     </main>
   );
@@ -544,11 +544,11 @@ function Field({
   );
 }
 
-function HelpPanel() {
+function HelpPanel({ projectRoot }: { projectRoot: string }) {
   return (
     <section className="help-panel">
       <h3>怎么用</h3>
-      <p>默认扫描 D:/codex 下的一级项目目录，不扫描 C 盘全盘。</p>
+      <p>当前扫描 {projectRoot} 下的一级项目目录，不扫描 C 盘全盘。</p>
       <p>新项目先点“分配端口”，启动器会生成 .env.development、.project-ports.lock、PROJECT_PORTS.md，并更新全局登记表。</p>
       <p>启动项目只执行 npm run dev:safe。如果项目还没有这个脚本，先点“生成模板”，再让 Codex 帮这个项目接入安全启动脚本。</p>
       <p>端口冲突只展示 PID 和进程名，不会自动杀未知进程。</p>

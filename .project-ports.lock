@@ -1,7 +1,7 @@
 {
   "version": 1,
   "projectName": "本地项目启动器",
-  "projectPath": "D:/codex/本地项目启动器",
+  "projectPath": "C:/codex/codex/本地项目启动器",
   "locked": true,
   "ports": {
     "frontend": 3100,
